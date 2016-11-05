@@ -7,6 +7,6 @@
 - do "npm i" in the local directory
 
 
-*Start the Symptom Database*
+*Launch the Symptom Database*
 - excecute "npm start" in the local directory
 - point your browser at http://localhost:8080
