@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html>
+
+<style>
+  .main {
+    display: flex;
+    flex-direction: row;
+  }
+
+  #entry-zone{
+    width: 45%;
+    padding-left: 5%;
+  }
+
+  #search-zone{
+    width: 45%;
+    padding-right: 5%;
+  }
+
+  #searchCriteria {
+    display: flex;
+    flex-direction: row;
+  }
+
+  #searchByDisease {
+    width: 45%;
+    padding-right: 5%;
+  }
+
+  #searchBySymptom {
+    width: 45%;
+    padding-right: 5%;
+  }
+
+  .searchForm {
+    width: 90%;
+  }
+
+
+</style>
+
+<head>
+    <meta charset="utf-8" />
+    <title>Symptom</title>
+    <style>
+
+    </style>
+</head>
+
+<body>
+    <h1>Symptom.</h1>
+    <div class="main">
+    <div id="entry-zone">
+
+    <section id="Disease_zone">
+
+    <form id="disease_form">
+        <input type="text" name="disease" id="disease"
+        placeholder="New Disease..." size="50" autofocus />
+        <!-- <input type="submit" id="enter_disease" value="Send" /> -->
+    </form>
+
+    </section>
+
+    <section id="Symptom_zone">
+      <form class="symptom_form">
+          <input type="text" name="symptom" id="symptom1"
+          placeholder="Symptom..." size="50" autofocus />
+      </form>
+      <form class="symptom_form">
+          <input type="text" name="symptom" id="symptom2"
+          placeholder="Symptom..." size="50" autofocus />
+      </form>
+      <form class="symptom_form">
+          <input type="text" name="symptom" id="symptom3"
+          placeholder="Symptom..." size="50" autofocus />
+      </form>
+    </section>
+    <button onclick="newSymptomField()">New Symptom</button>
+
+    <button onclick="save()">Save</button>
+    </div>
+
+    <div id="search-zone">
+      <div id="searchCriteria">
+        <div id="searchByDisease">
+          <form id="searchByDisease_form">
+              <input type="text" name="disease" id="searchDisease"
+              placeholder="Search for disease..." size="50" autofocus
+              class="searchForm" />
+          </form>
+        </div>
+        <div id="searchBySymptom">
+          <form id="searchBySymptom_form">
+              <input type="text" name="symptom" id="searchSymptom1"
+              placeholder="Search for symptom..." size="50" autofocus
+              class="searchForm"/>
+          </form>
+        </div>
+      </div>
+    <button onclick="search()">Search.</button>
+
+    <div id="result-zone">
+
+    </div>
+    </div>
+</div>
+</body>
+
+  <script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+      const socket = io.connect('http://localhost:8080');
+
+      socket.on('foundDisease', (disease) => {
+        display(disease)
+      });
+
+      socket.on('notFound', (criterium) => {
+        $('#result-zone').append(
+          `<p>No entry for "${criterium}" yet.</p>`
+        )
+      })
+
+      //save method
+      function save(){
+        const disease = $('#disease').val();
+        const symptoms = getSymptoms();
+        socket.emit('update', {
+          name:disease,
+          symptoms
+        });
+        clearFields();
+      }
+
+      // search with the input keys
+      function search() {
+        $('#result-zone').empty();
+        const disease = $('#searchDisease').val();
+        const symptoms = [$('#searchSymptom1').val()]
+        if(disease !== '') {
+          socket.emit('searchByDisease', disease);
+        } else if (symptoms.length > 0) {
+          socket.emit('searchBySymptom', symptoms);
+        }
+        $('#searchDisease').val('').focus();
+        $('#searchSymptom1').val('').focus();
+      }
+
+      //get the the values of all the symptom fields
+      function getSymptoms(){
+        let symptoms = [];
+        for(i = 1; i < ($("#Symptom_zone > form").length + 1); i++) {
+          if ($(`#symptom${i}`).val() != '') {
+            symptoms.push($(`#symptom${i}`).val());
+          }
+        }
+        return symptoms;
+      }
+
+      // add new symptom field
+      function newSymptomField() {
+        $(`#Symptom_zone`).append(
+        `<form class="symptom_form">
+           <input type="text" name="symptom" id="symptom${$("#Symptom_zone > form").length + 1}"
+            placeholder="Symptom..." size="50" autofocus />
+         </form>`
+         )
+      }
+
+      //clear all the fields
+      function clearFields() {
+        $('#disease').val('').focus(); // Empties the chat form and puts the focus back on it
+        for(i = 1; i < ($("#Symptom_zone > form").length + 1); i++) {
+          $(`#symptom${i}`).val('').focus();
+        }
+      }
+
+      //display a disease
+      function display(disease) {
+        $('#result-zone').append(
+          `<p>Disease: ${disease.name}</p>
+          <div>
+            Symptoms:
+            <ul id=${disease.name}_symptomList>
+            </ul>
+          </div>`
+        );
+        getSymptomList(`${disease.name}_symptomList`, disease.symptoms);
+      }
+
+      //display a list of symptoms
+      function getSymptomList(id, symptoms) {
+        symptoms.forEach((symptom) => {
+          $(`#${id}`).append(
+            `<li>${symptom}</li>`
+          );
+        })
+      }
+
+
+  </script>
+
+</html>
