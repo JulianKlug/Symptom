@@ -76,7 +76,7 @@
           placeholder="Symptom..." size="50" autofocus />
       </form>
     </section>
-    <button onclick="newSymptomField()">New Symptom</button>
+    <button onclick="newSymptomField('Symptom_zone', 'symptom', 'entryForm')">New Symptom</button>
 
     <button onclick="save()">Save</button>
     </div>
@@ -97,6 +97,7 @@
               class="searchForm"/>
           </form>
         </div>
+        <button onclick="newSymptomField('searchBySymptom', 'searchSymptom', 'searchForm')">Add symptom.</button>
       </div>
     <button onclick="search()">Search.</button>
 
@@ -125,7 +126,7 @@
       //save method
       function save(){
         const disease = $('#disease').val();
-        const symptoms = getSymptoms();
+        const symptoms = getSymptoms('Symptom_zone', 'symptom');
         socket.emit('update', {
           name:disease,
           symptoms
@@ -137,7 +138,7 @@
       function search() {
         $('#result-zone').empty();
         const disease = $('#searchDisease').val();
-        const symptoms = [$('#searchSymptom1').val()]
+        const symptoms = getSymptoms('searchBySymptom', 'searchSymptom'); //[$('#searchSymptom1').val()]
         if(disease !== '') {
           socket.emit('searchByDisease', disease);
         } else if (symptoms.length > 0) {
@@ -148,22 +149,23 @@
       }
 
       //get the the values of all the symptom fields
-      function getSymptoms(){
+      function getSymptoms(zone_name, field_id){
         let symptoms = [];
-        for(i = 1; i < ($("#Symptom_zone > form").length + 1); i++) {
-          if ($(`#symptom${i}`).val() != '') {
-            symptoms.push($(`#symptom${i}`).val());
+        for(i = 1; i < ($(`#${zone_name} > form`).length + 1); i++) {
+          if ($(`#${field_id}${i}`).val() != '') {
+            symptoms.push($(`#${field_id}${i}`).val());
           }
         }
         return symptoms;
       }
 
-      // add new symptom field
-      function newSymptomField() {
-        $(`#Symptom_zone`).append(
+      // add new symptom field for entry
+      function newSymptomField(zone_name, field_id, input_class) {
+        $(`#${zone_name}`).append(
         `<form class="symptom_form">
-           <input type="text" name="symptom" id="symptom${$("#Symptom_zone > form").length + 1}"
-            placeholder="Symptom..." size="50" autofocus />
+           <input type="text" name="symptom" id="${field_id}${$(`#${zone_name} > form`).length + 1}"
+            placeholder="Symptom..." size="50" autofocus
+            class=${input_class} />
          </form>`
          )
       }

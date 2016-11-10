@@ -44,7 +44,8 @@ sio.sockets.on('connection', (socket) => {
   });
 
   socket.on('searchByDisease', (disease) => {
-    if ('disease' in data) {
+    console.log(data[disease]);
+    if (disease in data) {
       socket.emit('foundDisease', {
         name: disease,
         symptoms: data[disease].symptoms
@@ -57,7 +58,7 @@ sio.sockets.on('connection', (socket) => {
   socket.on('searchBySymptom', (symptomCriteria) => {
     let found = false;
     for (const disease in data) {
-      if (data[disease].symptoms.includes(symptomCriteria[0])) {
+      if (symptomCriteria.every(elem => data[disease].symptoms.indexOf(elem) > -1)) {
         socket.emit('foundDisease', {
           name: disease,
           symptoms: data[disease].symptoms
